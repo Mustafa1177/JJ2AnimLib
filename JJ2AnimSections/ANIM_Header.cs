@@ -7,19 +7,19 @@ namespace JJ2AnimLib.JJ2AnimSections
 {
     public class ANIM_Header //44-byte
     {
-        char[] Magic = new char[4];         // Magic number
-        byte AnimationCount;   // Number of animations in set
-        byte SampleCount;      // Number of sound samples in set
-        short FrameCount;               // Total number of frames in set
-        int PriorSampleCount;             // Total number of sound sample across all sets preceding this one
-        int CData1;                    // Compressed size of Data1
-        int UData1;                    // Uncompressed size of Data1
-        int CData2;                    // Compressed size of Data2
-        int UData2;                    // Uncompressed size of Data2
-        int CData3;                    // Compressed size of Data3
-        int UData3;                    // Uncompressed size of Data3
-        int CData4;                    // Compressed size of Data4
-        int UData4;                    // Uncompressed size of Data4
+      public  char[] Magic = new char[4];         // Magic number
+        public byte AnimationCount;   // Number of animations in set
+        public byte SampleCount;      // Number of sound samples in set
+        public short FrameCount;               // Total number of frames in set
+        public int PriorSampleCount;             // Total number of sound sample across all sets preceding this one
+        public int CData1;                    // Compressed size of Data1
+        public int UData1;                    // Uncompressed size of Data1
+        public int CData2;                    // Compressed size of Data2
+        public int UData2;                    // Uncompressed size of Data2
+        public int CData3;                    // Compressed size of Data3
+        public int UData3;                    // Uncompressed size of Data3
+        public int CData4;                    // Compressed size of Data4
+        public int UData4;                    // Uncompressed size of Data4
 
         public bool Read(byte[] mem, int offset)
         {

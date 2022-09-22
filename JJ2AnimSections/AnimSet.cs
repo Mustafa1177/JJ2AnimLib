@@ -12,17 +12,17 @@ namespace JJ2AnimLib.JJ2AnimSections
         public ImageData Images { get; set; }
         public SampleData Samples { get; set; }
 
-        private byte[] Data1;
-        private byte[] Data2;
-        private byte[] Data3;
-        private byte[] Data4;
+        private byte[] Data1 = { };
+        private byte[] Data2 ={ };
+        private byte[] Data3= { };
+        private byte[] Data4 ={ };
 
         public bool Read(byte[] mem, int offset)
         {
             Header = new ANIM_Header();
-            if (Header.Read(mem,))
+            if (Header.Read(mem,offset))
             {
-
+                byte[] compressedData1 = new byte[Header.];
             }
             return false;
         }
