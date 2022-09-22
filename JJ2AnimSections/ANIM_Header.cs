@@ -21,6 +21,12 @@ namespace JJ2AnimLib.JJ2AnimSections
         public int CData4;                    // Compressed size of Data4
         public int UData4;                    // Uncompressed size of Data4
 
+
+        public int GetSize
+        {
+            get { return 44; }
+        }
+
         public bool Read(byte[] mem, int offset)
         {
             Magic = new char[4];
