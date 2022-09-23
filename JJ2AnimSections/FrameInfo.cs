@@ -19,6 +19,7 @@ namespace JJ2AnimLib.JJ2AnimSections
         public int MaskAddress;   // Address in Data3 where mask starts
 
         public byte[,] Img8Bit;
+        public byte[,] TMask; //Transp
         public byte[,] Mask;
         public FrameInfo(short w, short h, short coldspotX, short coldspotY, short hotspotX, short hotspotY, short gunspotX, short gunspotY, int imgAddress, int maskAddress)
         {

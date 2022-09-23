@@ -90,10 +90,12 @@ namespace JJ2AnimLib.JJ2AnimSections
         private bool ReadAnimations(byte[] buff, int offset = 0) //Read Data1
         {
             Animations = new AnimInfo[Header.AnimationCount];
+            int startFrame = 0;
             for(int i = 0; i < Animations.Length; i++)
             {
-                Animations[i] = new AnimInfo((short)(buff[offset] | (buff[offset +1]<< 8)), (short)(buff[offset + 2] | (buff[offset + 3] << 8)), buff[offset+4] | (buff[offset + 5] << 8) | (buff[offset + 6] << 16) | (buff[offset + 7] << 24));
-                offset += AnimInfo.SIZE;
+                Animations[i] = new AnimInfo((short)(buff[offset] | (buff[offset +1]<< 8)), (short)(buff[offset + 2] | (buff[offset + 3] << 8)), buff[offset+4] | (buff[offset + 5] << 8) | (buff[offset + 6] << 16) | (buff[offset + 7] << 24), startFrame);
+                startFrame += Animations[i].FrameCount;
+                 offset += AnimInfo.SIZE;
             }
             return true;
         }
@@ -114,6 +116,7 @@ namespace JJ2AnimLib.JJ2AnimSections
             for(int f = 0; f < destFrames.Length; f++)
             {
                 destFrames[f].Img8Bit = new byte[destFrames[f].Width, destFrames[f].Height];
+                destFrames[f].TMask = new byte[destFrames[f].Width, destFrames[f].Height];
                 int imgAddress = offset + destFrames[f].ImageAddress;
 
                 short w = BitConverter.ToInt16(imgBuff, imgAddress);
@@ -144,7 +147,8 @@ namespace JJ2AnimLib.JJ2AnimSections
                                     //if(y >= h)
 
                                 }
-                                destFrames[f].Img8Bit[x, y] = imgBuff[i++];  
+                                destFrames[f].Img8Bit[x, y] = imgBuff[i++];
+                                destFrames[f].TMask[x, y] = 1;
                                 x++;
              
                             }
@@ -153,7 +157,7 @@ namespace JJ2AnimLib.JJ2AnimSections
                         {
                             y += count / w;
                             x += count % w;
-                            //i++;
+                            
                         }
                     }
                     else //next row
@@ -165,6 +169,10 @@ namespace JJ2AnimLib.JJ2AnimSections
 
                 }
                 
+                for(i = 0; i < destFrames[f].Width; i++)
+                    for(int j = 0; j < destFrames[f].Height; j++)
+                        destFrames[f].TMask[i, j] = destFrames[f].TMask[i, j] == 0 ? (byte)1 : (byte)0; //inverse
+  
 
             }
 
