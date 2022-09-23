@@ -40,13 +40,13 @@ namespace JJ2AnimLib.JJ2AnimSections
                 PriorSampleCount = ToInt32(mem, offset + 8);
                 CData1 = ToInt32(mem, offset + 12);
                 UData1 = ToInt32(mem, offset + 16);
-                CData1 = ToInt32(mem, offset + 20); 
+                CData2 = ToInt32(mem, offset + 20); 
                 UData2 = ToInt32(mem, offset + 24);
-                CData2 = ToInt32(mem, offset + 28);
+                CData3 = ToInt32(mem, offset + 28);
                 UData3 = ToInt32(mem, offset + 32);
-                CData3 = ToInt32(mem, offset + 36);
+                CData4 = ToInt32(mem, offset + 36);
                 UData4 = ToInt32(mem, offset + 40);
-                CData4 = ToInt32(mem, offset + 44);
+        
                 return true;
             }
             return false;

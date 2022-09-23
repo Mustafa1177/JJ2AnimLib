@@ -23,6 +23,7 @@ namespace JJ2AnimLib
         public JJ2AnimFile(string file)
         {
             Load(file);
+            
         }
 
     public bool Load(string file)
@@ -45,9 +46,12 @@ namespace JJ2AnimLib
             Sets = new AnimSet[Header.SetCount];
             for(int i = 0; i < Sets.Length; i++)
             {
+               
                 Sets[i] = new AnimSet();
-               if (!Sets[i].Read(mem,offset))
+               if (!Sets[i].Read(mem, Header.SetAddress[i]))
                     return false;
+                // address/offset can be calculated manually as: offset += Sets[i].GetSize
+                // but we will use addresses given in the file instead (Header.SetAddress[i]).
 
             }
             return true;

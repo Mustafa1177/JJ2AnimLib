@@ -2,14 +2,15 @@
 using System.Collections.Generic;
 using System.Text;
 using System.IO.Compression;
+using static System.BitConverter;
 
 namespace JJ2AnimLib.JJ2AnimSections
 {
     public class AnimSet
     {
         public ANIM_Header Header { get; set; }
-        public AnimInfo Animations { get; set; }
-        public FrameInfo Frames { get; set; }
+        public AnimInfo[] Animations { get; set; }
+        public FrameInfo[] Frames { get; set; }
         public ImageData Images { get; set; }
         public SampleData Samples { get; set; }
 
@@ -29,6 +30,40 @@ namespace JJ2AnimLib.JJ2AnimSections
             if (Header.Read(mem,offset))
             {
                 offset += Header.GetSize;
+                byte[] compressedData1 = new byte[Header.CData1];
+                Array.Copy(mem, offset, compressedData1, 0, Header.CData1);
+                Data1 = new byte[Header.UData1];
+                long uDataLength = Header.UData1;
+                if (GeneralFunctions.UncompressByteArray(Data1, ref uDataLength, compressedData1, Header.CData1) != 0)
+                    return false;
+                offset += Header.CData1;
+
+                byte[] compressedData2 = new byte[Header.CData2];
+                Array.Copy(mem, offset, compressedData2, 0, Header.CData2);
+                Data2 = new byte[Header.UData2];
+                uDataLength = Header.UData2;
+                if (GeneralFunctions.UncompressByteArray(Data2, ref uDataLength, compressedData2, Header.CData2) != 0)
+                    return false;
+                offset += Header.CData2;
+
+                byte[] compressedData3 = new byte[Header.CData3];
+                Array.Copy(mem, offset, compressedData3, 0, Header.CData3);
+                Data3 = new byte[Header.UData3];
+                uDataLength = Header.UData3;
+                if (GeneralFunctions.UncompressByteArray(Data3, ref uDataLength, compressedData3, Header.CData3) != 0)
+                    return false;
+                offset += Header.CData3;
+
+                byte[] compressedData4 = new byte[Header.CData4];
+                Array.Copy(mem, offset, compressedData4, 0, Header.CData4);
+                Data4 = new byte[Header.UData4];
+                uDataLength = Header.UData4;
+                if (GeneralFunctions.UncompressByteArray(Data4, ref uDataLength, compressedData4, Header.CData4) != 0)
+                    return false;
+                offset += Header.CData4;
+
+                /*
+                Data1 = GeneralFunctions.Decompress(compressedData1);
                 Data1 = GeneralFunctions.Unzip(mem, offset, Header.CData1);
                 offset+= Header.CData1;
                 Data1 = GeneralFunctions.Unzip(mem, offset, Header.CData2);
@@ -37,10 +72,104 @@ namespace JJ2AnimLib.JJ2AnimSections
                 offset += Header.CData3;
                 Data1 = GeneralFunctions.Unzip(mem, offset, Header.CData4);
                 offset += Header.CData4;
+                */
 
+                if (ReadAnimations(this.Data1) == false)
+                    return false;
+                if (ReadFrames(this.Data2) == false)
+                    return false;
+                if (ReadImages(this.Frames,this.Data3) == false)
+                    return false;
+               // System.IO.File.WriteAllBytes("D:/IMG3.DAT", this.Data3);
+               // System.IO.File.WriteAllBytes("D:/MASK4.DAT", this.Data4);
                 return true;
             }
             return false;
         }
+
+        private bool ReadAnimations(byte[] buff, int offset = 0) //Read Data1
+        {
+            Animations = new AnimInfo[Header.AnimationCount];
+            for(int i = 0; i < Animations.Length; i++)
+            {
+                Animations[i] = new AnimInfo((short)(buff[offset] | (buff[offset +1]<< 8)), (short)(buff[offset + 2] | (buff[offset + 3] << 8)), buff[offset+4] | (buff[offset + 5] << 8) | (buff[offset + 6] << 16) | (buff[offset + 7] << 24));
+                offset += AnimInfo.SIZE;
+            }
+            return true;
+        }
+
+        private bool ReadFrames(byte[] buff, int offset = 0) //Read Data2
+        {
+            Frames = new FrameInfo[Header.FrameCount];
+            for (int i = 0; i < Frames.Length; i++)
+            {
+                Frames[i] = new FrameInfo(ToInt16(buff, offset), ToInt16(buff, offset + 2), ToInt16(buff, offset + 4), ToInt16(buff, offset+ 6), ToInt16(buff, offset+8), ToInt16(buff, offset+10), ToInt16(buff, offset + 12), ToInt16(buff, offset+14),ToInt32(buff, offset +16), ToInt32(buff,offset + 20));
+                offset += FrameInfo.SIZE;
+            }
+            return true;
+        }
+
+        private bool ReadImages(FrameInfo[] destFrames,byte[] imgBuff, int offset = 0)
+        {
+            for(int f = 0; f < destFrames.Length; f++)
+            {
+                destFrames[f].Img8Bit = new byte[destFrames[f].Width, destFrames[f].Height];
+                int imgAddress = offset + destFrames[f].ImageAddress;
+
+                short w = BitConverter.ToInt16(imgBuff, imgAddress);
+                short h = BitConverter.ToInt16(imgBuff, imgAddress + 2);
+                bool isTranslucent = (w & 0x8000) != 0;
+                w = (short)(w & 0x7FFF);
+
+                
+                int x = 0;
+                int y = 0;
+                int i = imgAddress + 4;
+                byte codebyte;
+                int count;
+                while (y < h)
+                {
+                    codebyte = imgBuff[i++];
+                    if(codebyte != 0x80)
+                    {
+                        count = codebyte & 0x7F;
+                        if(codebyte > 0x80) //read "count" times
+                        {
+                            for(int n = 0; n < count; n++)
+                            {
+                                if (x >= w)
+                                {
+                                    x = 0;
+                                    y++;
+                                    //if(y >= h)
+
+                                }
+                                destFrames[f].Img8Bit[x, y] = imgBuff[i++];  
+                                x++;
+             
+                            }
+                        }
+                        else //skip "count" times
+                        {
+                            y += count / w;
+                            x += count % w;
+                            //i++;
+                        }
+                    }
+                    else //next row
+                    {
+                        x = 0;
+                        y++;
+                        //i++;
+                    }
+
+                }
+                
+
+            }
+
+            return true;
+        }
+
     }
 }

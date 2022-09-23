@@ -3,11 +3,15 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using System.IO.Compression;
+using System.Runtime.InteropServices;
 
 namespace JJ2AnimLib
 {
     internal class GeneralFunctions
     {
+
+        [DllImport("zlib1.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "uncompress", CharSet = CharSet.Auto)]
+        public static extern int UncompressByteArray(byte[] dest, ref long destLen, byte[] src, long srcLen);
 
         public static void CopyTo(Stream src, Stream dest)
         {
@@ -35,5 +39,28 @@ namespace JJ2AnimLib
                 return mso.ToArray();
             }
         }
+
+
+        public static byte[] Decompress(Stream source)
+        {
+            using (var gzip = new GZipStream(source, CompressionMode.Decompress))
+            {
+                using (var decompressed = new MemoryStream())
+                {
+                    gzip.CopyTo(decompressed);
+
+                    return decompressed.ToArray();
+                }
+            }
+        }
+
+      public  static byte[] Decompress(byte[] data)
+        {
+            using (var ms = new MemoryStream(data))
+            {
+                return Decompress(ms);
+            }
+        }
+
     }
 }
