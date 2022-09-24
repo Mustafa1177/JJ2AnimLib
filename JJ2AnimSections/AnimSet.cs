@@ -12,7 +12,7 @@ namespace JJ2AnimLib.JJ2AnimSections
         public AnimInfo[] Animations { get; set; }
         public FrameInfo[] Frames { get; set; }
         public ImageData Images { get; set; }
-        public SampleData Samples { get; set; }
+        public SampleData[] Samples { get; set; }
 
         private byte[] Data1 = { };
         private byte[] Data2 ={ };
@@ -78,8 +78,11 @@ namespace JJ2AnimLib.JJ2AnimSections
                     return false;
                 if (ReadFrames(this.Data2) == false)
                     return false;
-                if (ReadImages(this.Frames,this.Data3) == false)
+                if (ReadImages(this.Frames, this.Data3) == false)
                     return false;
+                if (ReadSamples(this.Samples, this.Data4) == false)
+                    return false;
+
                // System.IO.File.WriteAllBytes("D:/IMG3.DAT", this.Data3);
                // System.IO.File.WriteAllBytes("D:/MASK4.DAT", this.Data4);
                 return true;
@@ -178,6 +181,20 @@ namespace JJ2AnimLib.JJ2AnimSections
 
             return true;
         }
-
+        private bool ReadSamples(SampleData[] destSamples, byte[] sampBuff, int offset = 0)
+        {
+            Samples = new SampleData[Header.SampleCount];
+            int sampleID = Header.PriorSampleCount;
+            int i = offset;
+            for (int s = 0; s <  Header.SampleCount; s++)
+            {
+                Samples[s] = new SampleData(ToInt32(sampBuff, i), sampleID++); //SampleSize = first int in sample header - 4
+                Array.Copy(sampBuff, i + sizeof(int), Samples[s].Buffer, 0, Samples[s].SampleSize);
+                i += Samples[s].TotalSize;
+            }
+         
+            return true;
+        }
+       
     }
 }

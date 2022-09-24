@@ -11,7 +11,6 @@ namespace JJ2AnimLib.JJ2AnimSections
         short height;
         public bool Read(byte[] mem, int offset = 0)
         {
-            
             return true;
 
         }
