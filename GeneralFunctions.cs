@@ -47,8 +47,9 @@ namespace JJ2AnimLib
             {
                 using (var decompressed = new MemoryStream())
                 {
+#if NETSTANDARD2_0_OR_GREATER
                     gzip.CopyTo(decompressed);
-
+#endif
                     return decompressed.ToArray();
                 }
             }

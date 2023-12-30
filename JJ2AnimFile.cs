@@ -8,22 +8,20 @@ namespace JJ2AnimLib
     public class JJ2AnimFile
     {
         public ALIB_Header Header { get; set; }
+
         public AnimSet[] Sets = new AnimSet[0]; 
     
-
         private bool _success = false;
-        public bool Success { get { return _success; } }
 
+        public bool Success { get { return _success; } }
 
         public JJ2AnimFile()
         {
         }
 
-
         public JJ2AnimFile(string file)
         {
-            Load(file);
-            
+            Load(file);        
         }
 
     public bool Load(string file)
@@ -41,18 +39,17 @@ namespace JJ2AnimLib
             _success = res;
             return res;
         }
+
     private bool ReadSets(byte[] mem, int offset)
         {
             Sets = new AnimSet[Header.SetCount];
             for(int i = 0; i < Sets.Length; i++)
             {
-               
                 Sets[i] = new AnimSet();
-               if (!Sets[i].Read(mem, Header.SetAddress[i]))
+                if (!Sets[i].Read(mem, Header.SetAddress[i]))
                     return false;
                 // address/offset can be calculated manually as: offset += Sets[i].GetSize
                 // but we will use addresses given in the file instead (Header.SetAddress[i]).
-
             }
             return true;
         }

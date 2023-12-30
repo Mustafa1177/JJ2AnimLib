@@ -7,7 +7,7 @@ namespace JJ2AnimLib.JJ2AnimSections
     public class FrameInfo //Data2
     {
         public const int SIZE = 24;
-       public short Width;
+        public short Width;
         public short Height;
         public short ColdspotX;    // Relative to hotspot
         public short ColdspotY;    // Relative to hotspot

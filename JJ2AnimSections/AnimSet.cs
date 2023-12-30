@@ -15,9 +15,9 @@ namespace JJ2AnimLib.JJ2AnimSections
         public SampleData[] Samples { get; set; }
 
         private byte[] Data1 = { };
-        private byte[] Data2 ={ };
-        private byte[] Data3= { };
-        private byte[] Data4 ={ };
+        private byte[] Data2 = { };
+        private byte[] Data3 = { };
+        private byte[] Data4 = { };
 
         public int GetSize
         {
