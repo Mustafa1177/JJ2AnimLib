@@ -19,24 +19,45 @@ namespace JJ2AnimLib.JJ2AnimSections
         private byte[] Data3 = { };
         private byte[] Data4 = { };
 
+        public byte[] GetSAnimationInfoBuffer => Data1;
+        public byte[] GetFrameInfoBuffer => Data2;
+        public byte[] GetImageDataBuffer => Data3;
+        public byte[] GetSampleDataBuffer => Data4;
+
+        private sbyte _loadPercentage = -1;
+        public sbyte LoadPercentage => _loadPercentage;
+
+
         public int GetSize
         {
             get { return Header != null? Header.GetSize + Header.CData1 + Header.CData2 + Header.CData3 + Header.CData4 : 0; }
         }
 
-        public bool Read(byte[] mem, int offset)
+        public void FreeDataBuffers()
+        {            
+            Data1 = new byte[] { };
+            Data2 = new byte[] { };
+            Data3 = new byte[] { };
+            Data4 = new byte[] { };
+        }
+
+        public bool Read(byte[] mem, int offset, bool prepareImages = true)
         {
             Header = new ANIM_Header();
             if (Header.Read(mem,offset))
             {
+                _loadPercentage = 0;
+
                 offset += Header.GetSize;
                 byte[] compressedData1 = new byte[Header.CData1];
                 Array.Copy(mem, offset, compressedData1, 0, Header.CData1);
                 Data1 = new byte[Header.UData1];
                 long uDataLength = Header.UData1;
-                if (GeneralFunctions.UncompressByteArray(Data1, ref uDataLength, compressedData1, Header.CData1) != 0)
+                var uncompRes = GeneralFunctions.UncompressByteArray(Data1, ref uDataLength, compressedData1, Header.CData1);
+                if (uncompRes != 0)
                     return false;
                 offset += Header.CData1;
+                _loadPercentage = 5;
 
                 byte[] compressedData2 = new byte[Header.CData2];
                 Array.Copy(mem, offset, compressedData2, 0, Header.CData2);
@@ -45,6 +66,7 @@ namespace JJ2AnimLib.JJ2AnimSections
                 if (GeneralFunctions.UncompressByteArray(Data2, ref uDataLength, compressedData2, Header.CData2) != 0)
                     return false;
                 offset += Header.CData2;
+                _loadPercentage = 10;
 
                 byte[] compressedData3 = new byte[Header.CData3];
                 Array.Copy(mem, offset, compressedData3, 0, Header.CData3);
@@ -53,6 +75,7 @@ namespace JJ2AnimLib.JJ2AnimSections
                 if (GeneralFunctions.UncompressByteArray(Data3, ref uDataLength, compressedData3, Header.CData3) != 0)
                     return false;
                 offset += Header.CData3;
+                _loadPercentage = 15;
 
                 byte[] compressedData4 = new byte[Header.CData4];
                 Array.Copy(mem, offset, compressedData4, 0, Header.CData4);
@@ -61,6 +84,7 @@ namespace JJ2AnimLib.JJ2AnimSections
                 if (GeneralFunctions.UncompressByteArray(Data4, ref uDataLength, compressedData4, Header.CData4) != 0)
                     return false;
                 offset += Header.CData4;
+                _loadPercentage = 20;
 
                 /*
                 Data1 = GeneralFunctions.Decompress(compressedData1);
@@ -76,17 +100,23 @@ namespace JJ2AnimLib.JJ2AnimSections
 
                 if (ReadAnimations(this.Data1) == false)
                     return false;
+                _loadPercentage = 30;
                 if (ReadFrames(this.Data2) == false)
                     return false;
-                if (ReadImages(this.Frames, this.Data3) == false)
+                _loadPercentage = 50;
+                if (prepareImages && ReadImages(this.Frames, this.Data3) == false)
                     return false;
+                _loadPercentage = 80;
                 if (ReadSamples(this.Samples, this.Data4) == false)
                     return false;
+                _loadPercentage = 100;
 
-               // System.IO.File.WriteAllBytes("D:/IMG3.DAT", this.Data3);
-               // System.IO.File.WriteAllBytes("D:/MASK4.DAT", this.Data4);
+                // System.IO.File.WriteAllBytes("D:/IMG3.DAT", this.Data3);
+                // System.IO.File.WriteAllBytes("D:/MASK4.DAT", this.Data4);
                 return true;
             }
+
+            ReadFail:
             return false;
         }
 
@@ -114,7 +144,7 @@ namespace JJ2AnimLib.JJ2AnimSections
             return true;
         }
 
-        private bool ReadImages(FrameInfo[] destFrames,byte[] imgBuff, int offset = 0)
+        private bool ReadImages(FrameInfo[] destFrames, byte[] imgBuff, int offset = 0)
         {
             for(int f = 0; f < destFrames.Length; f++)
             {
@@ -175,12 +205,13 @@ namespace JJ2AnimLib.JJ2AnimSections
                 for(i = 0; i < destFrames[f].Width; i++)
                     for(int j = 0; j < destFrames[f].Height; j++)
                         destFrames[f].TMask[i, j] = destFrames[f].TMask[i, j] == 0 ? (byte)1 : (byte)0; //inverse
-  
 
+                _loadPercentage = (sbyte)(50 + (f / (float)destFrames.Length * (80 - 50)));
             }
 
             return true;
         }
+
         private bool ReadSamples(SampleData[] destSamples, byte[] sampBuff, int offset = 0)
         {
             Samples = new SampleData[Header.SampleCount];
@@ -191,8 +222,9 @@ namespace JJ2AnimLib.JJ2AnimSections
                 Samples[s] = new SampleData(ToInt32(sampBuff, i), sampleID++); //SampleSize = first int in sample header - 4
                 Array.Copy(sampBuff, i + sizeof(int), Samples[s].Buffer, 0, Samples[s].SampleSize);
                 i += Samples[s].TotalSize;
+                _loadPercentage = (sbyte)(80 + (s / (float)Header.SampleCount * (100 - 80)));
             }
-         
+
             return true;
         }
        
